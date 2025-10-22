@@ -1,11 +1,4 @@
-// Productos
-const productos = [
-    { id: 1, nombre: "Remera Oversize", precio: 23500 },
-    { id: 2, nombre: "Buzo Hoodie", precio: 39900 },
-    { id: 3, nombre: "Jogger", precio: 28900 }
-];
-
-// Carrito en LocalStorage o vacío
+// Carrito en LocalStorage o vacio
 let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 
 // Elementos del DOM
@@ -14,22 +7,45 @@ const ulCarrito = document.getElementById("carrito");
 const totalTexto = document.getElementById("total");
 const btnVaciar = document.getElementById("vaciar");
 
+// Cargar productos desde archivo JSON
+async function cargarProductos() {
+    try {
+        const respuesta = await fetch("productos.json");
+        const productos = await respuesta.json();
+        mostrarProductos(productos);
+    } catch (error) {
+        console.error("Error al cargar productos:", error);
+        Swal.fire({
+            icon: "error",
+            title: "Error al cargar productos",
+            text: "No se pudieron obtener los datos remotos.",
+            confirmButtonColor: "black"
+        });
+    }
+}
+
 // Mostrar productos
-function mostrarProductos() {
+function mostrarProductos(productos) {
     divProductos.innerHTML = "";
     productos.forEach(prod => {
         let btn = document.createElement("button");
         btn.textContent = `Agregar ${prod.nombre} - $${prod.precio}`;
-        btn.addEventListener("click", () => agregarAlCarrito(prod.id));
+        btn.addEventListener("click", () => agregarAlCarrito(prod));
         divProductos.appendChild(btn);
     });
 }
 
 // Agregar producto al carrito
-function agregarAlCarrito(id) {
-    let producto = productos.find(p => p.id === id);
+function agregarAlCarrito(producto) {
     carrito.push(producto);
     actualizarCarrito();
+    Swal.fire({
+        position: "top-end",
+        icon: "success",
+        title: `${producto.nombre} agregado al carrito`,
+        showConfirmButton: false,
+        timer: 1000
+    });
 }
 
 // Actualizar carrito
@@ -64,8 +80,13 @@ function eliminarDelCarrito(index) {
 btnVaciar.addEventListener("click", () => {
     carrito = [];
     actualizarCarrito();
+    Swal.fire({
+        icon: "info",
+        title: "Carrito vaciado",
+        confirmButtonColor: "black"
+    });
 });
 
-// Inicialización
-mostrarProductos();
+// Inicializacion / Invoacion 
+cargarProductos();
 actualizarCarrito();
